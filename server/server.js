@@ -13,7 +13,6 @@ var app = express();
 app.use(bodyParser.json());
 
 app.post('/todos', (req, res) => {
-    console.log(JSON.stringify(req.body, undefined, 4));
     var todo = new Todo({
         text: req.body.text
     });
@@ -23,8 +22,20 @@ app.post('/todos', (req, res) => {
     }, (e) => {
         res.status(400).send(e);
     });
+}).post('/users', (req, res) => {
+    var user = new User({
+        email: req.body.email
+    });
+
+    user.save().then((doc)=> {
+        res.status(200).send(doc);
+    }, (e) => {
+        res.status(400).send(e);
+    })
 });
 
 app.listen(port, () => {
     console.log(`Started on port ${port}`);
 });
+
+module.exports = { app };
