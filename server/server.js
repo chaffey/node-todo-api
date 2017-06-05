@@ -55,7 +55,7 @@ app.post('/todos', (req, res) => {
     }, (e) => {
         res.status(400).send(e);
     })
-}).delete('todos/:id', (req, res) => {
+}).delete('/todos/:id', (req, res) => {
     var id = req.params.id;
 
     if(ObjectID.isValid(id)) {
