@@ -1,12 +1,19 @@
 const expect = require('expect');
 const request = require('supertest');
+const {ObjectID} = require('mongodb');
 
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo.js');
 const todos = [
-    { text: 'first test todo'},
-    { text: 'second test todo'}
+    {
+        _id: new ObjectID(),
+        text: 'first test todo'
+    },
+    {
+        _id: new ObjectID(),
+        text: 'second test todo'
+    }
 ];
 
 beforeEach((done) => {
@@ -68,21 +75,26 @@ describe('GET /todos', () => {
     });
 
     it('should return a specific todo', (done) => {
-        Todo.find().then((todos) => {
-            var idObject = todos[0]._id;
-            request(app)
-                .get(`/todos/${idObject}`)
-                .expect(200)
-                .expect((res) => {
-                    expect(res.body.todo._id).toEqual(idObject);
-                })
-                .end(done);
-        }).catch((e) => done(e));
+        request(app)
+            .get(`/todos/${todos[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo._id).toBe(todos[0]._id.toHexString());
+                expect(res.body.todo.text).toBe(todos[0].text);
+            })
+            .end(done);
     });
 
-    it('should return 400 on invalid id format', (done) => {
+    it('should return 404 on invalid id format', (done) => {
         request(app)
             .get('/todos/bad_id')
+            .expect(404)
+            .end(done);
+    });
+
+    it('should return 404 on id not in db', (done) => {
+        request(app)
+            .get(`/todos/${new ObjectID().toHexString()}`)
             .expect(404)
             .end(done);
     });
