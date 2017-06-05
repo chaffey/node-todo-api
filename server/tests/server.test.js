@@ -1,20 +1,23 @@
 const expect = require('expect');
 const request = require('supertest');
-const {ObjectID} = require('mongodb');
+const {
+    ObjectID
+} = require('mongodb');
 
 
-const {app} = require('./../server');
-const {Todo} = require('./../models/todo.js');
-const todos = [
-    {
-        _id: new ObjectID(),
-        text: 'first test todo'
-    },
-    {
-        _id: new ObjectID(),
-        text: 'second test todo'
-    }
-];
+const {
+    app
+} = require('./../server');
+const {
+    Todo
+} = require('./../models/todo.js');
+const todos = [{
+    _id: new ObjectID(),
+    text: 'first test todo'
+}, {
+    _id: new ObjectID(),
+    text: 'second test todo'
+}];
 
 beforeEach((done) => {
     Todo.remove({}).then(() => {
@@ -28,15 +31,19 @@ describe('POST /todos', () => {
 
         request(app)
             .post('/todos')
-            .send({ text })
+            .send({
+                text
+            })
             .expect(200)
             .expect((res) => {
                 expect(res.body.text).toBe(text);
             }).end((err, res) => {
-                if(err) {
+                if (err) {
                     done(err);
                 } else {
-                    Todo.find({ text: 'test todo text'}).then((todos) => {
+                    Todo.find({
+                        text: 'test todo text'
+                    }).then((todos) => {
                         expect(todos.length).toBe(1);
                         expect(todos[0].text).toBe(text);
                         done();
@@ -51,7 +58,7 @@ describe('POST /todos', () => {
             .send({})
             .expect(400)
             .end((err, res) => {
-                if(err) {
+                if (err) {
                     done(err);
                 } else {
                     Todo.find().then((todos) => {
@@ -123,7 +130,7 @@ describe('DELETE /todos', () => {
                 expect(res.body.todo.text).toBe(todos[1].text);
             })
             .end((err, res) => {
-                if(err) {
+                if (err) {
                     return done(err);
                 } else {
                     Todo.findById(todos[1]._id.toHexString()).then((todo) => {
@@ -133,5 +140,43 @@ describe('DELETE /todos', () => {
                 }
             });
     });
+});
 
+describe('PATCH /todos', () => {
+    it('should return 404 on invalid id format', (done) => {
+        request(app)
+            .patch('/todos/bad_id')
+            .expect(404)
+            .end(done);
+    });
+
+    it('should return 404 on id not in db', (done) => {
+        request(app)
+            .patch(`/todos/${new ObjectID().toHexString()}`)
+            .expect(404)
+            .end(done);
+    });
+
+    it('should return 200 and the updated todo on successful patch', (done) => {
+        request(app)
+            .patch(`/todos/${todos[1]._id.toHexString()}`)
+            .send({
+                completed: true
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.completed).toBe(true);
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                } else {
+                    Todo.findById(todos[1]._id.toHexString()).then((todo) => {
+                        expect(todo.completed).toBe(true);
+                        expect(todo.completedAt).toExist();
+                        done();
+                    }).catch((e) => done(e));
+                }
+            });
+    });
 });
