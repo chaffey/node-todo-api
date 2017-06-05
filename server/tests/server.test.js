@@ -99,3 +99,35 @@ describe('GET /todos', () => {
             .end(done);
     });
 });
+
+describe('DELETE /todos', () => {
+    it('should return 404 on invalid id format', (done) => {
+        request(app)
+            .delete('/todos/bad_id')
+            .expect(404)
+            .end(done);
+    });
+
+    it('should return 404 on id not in db', (done) => {
+        request(app)
+            .delete(`/todos/${new ObjectID().toHexString()}`)
+            .expect(404)
+            .end(done);
+    });
+
+    it('should return 200 and the todo on successful delete', (done) => {
+        request(app)
+            .delete(`/todos/${todos[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toBe(todos[0].text);
+            });
+
+        Todo.find().then((todos) => {
+            expect(todos.length).toBe(1);
+        }).catch((e) => done(e));
+
+        done();
+    });
+
+});
