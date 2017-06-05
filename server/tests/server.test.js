@@ -53,9 +53,7 @@ describe('POST /todos', () => {
                     }).catch((e) => done(e));
                 }
             });
-
     });
-
 });
 
 describe('GET /todos', () => {
@@ -66,6 +64,26 @@ describe('GET /todos', () => {
             .expect((res) => {
                 expect(res.body.todos.length).toBe(2);
             })
+            .end(done);
+    });
+
+    it('should return a specific todo', (done) => {
+        Todo.find().then((todos) => {
+            var idObject = todos[0]._id;
+            request(app)
+                .get(`/todos/${idObject}`)
+                .expect(200)
+                .expect((res) => {
+                    expect(res.body.todo._id).toEqual(idObject);
+                })
+                .end(done);
+        }).catch((e) => done(e));
+    });
+
+    it('should return 400 on invalid id format', (done) => {
+        request(app)
+            .get('/todos/bad_id')
+            .expect(404)
             .end(done);
     });
 });
