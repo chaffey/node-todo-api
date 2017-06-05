@@ -117,17 +117,21 @@ describe('DELETE /todos', () => {
 
     it('should return 200 and the todo on successful delete', (done) => {
         request(app)
-            .delete(`/todos/${todos[0]._id.toHexString()}`)
+            .delete(`/todos/${todos[1]._id.toHexString()}`)
             .expect(200)
             .expect((res) => {
-                expect(res.body.todo.text).toBe(todos[0].text);
+                expect(res.body.todo.text).toBe(todos[1].text);
+            })
+            .end((err, res) => {
+                if(err) {
+                    return done(err);
+                } else {
+                    Todo.findById(todos[1]._id.toHexString()).then((todo) => {
+                        expect(todo).toNotExist();
+                        done();
+                    }).catch((e) => done(e));
+                }
             });
-
-        Todo.find().then((todos) => {
-            expect(todos.length).toBe(1);
-        }).catch((e) => done(e));
-
-        done();
     });
 
 });
