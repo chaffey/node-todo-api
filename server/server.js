@@ -8,13 +8,14 @@ const {ObjectID} = require('mongodb');
 const {mongoose} = require('./db/mongoose');
 const {Todo} = require('./models/todo');
 const {User} = require('./models/user');
+const {authenticate} = require('./middleware/authenticate');
 
 // Port for server startup set by Heroku
 const port = process.env.PORT;
 
 var app = express();
 
-// Setup express add-ons
+// Setup express middleware
 app.use(bodyParser.json());
 
 // Setup express routes for todos
@@ -116,6 +117,11 @@ app.post('/users', (req, res) => {
     }).catch((e) => {
         res.status(400).send(e);
     });
+});
+
+// Private route with authentication
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
 });
 
 // Start the fucker up!
